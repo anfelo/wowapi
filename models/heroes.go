@@ -1,29 +1,44 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
-	"strconv"
+	"os"
 
+	"github.com/anfelo/wowapi/database"
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v4"
 )
 
 // Hero type definition
 type Hero struct {
-	ID    string `json:"id"`
-	Isbn  string `json:"isbn"`
-	Title string `json:"title"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Title    string `json:"title"`
+	Faction  string `json:"faction"`
+	Race     string `json:"race"`
+	Location string `json:"location"`
 }
 
-var (
-	heroes []*Hero
-)
+var conn *pgx.Conn = database.GetConnection()
 
 // GetHeroes method that gets all the heroes
 func GetHeroes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	rows, _ := conn.Query(context.Background(), "select * from heroes")
+
+	var heroes []Hero
+	for rows.Next() {
+		err := rows.Scan(&heroes)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to list heroes: %v\n", err)
+			return
+		}
+	}
+
 	encodeResponseAsJSON(heroes, w)
 }
 
@@ -31,22 +46,30 @@ func GetHeroes(w http.ResponseWriter, r *http.Request) {
 func GetHero(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	for _, hero := range heroes {
-		if hero.ID == params["id"] {
-			encodeResponseAsJSON(hero, w)
-			return
-		}
+
+	var hero Hero
+	row := conn.QueryRow(context.Background(), "select * from heroes where id=$1", params["id"])
+	err := row.Scan(&hero)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to retrieve hero: %v\n", err)
+		return
 	}
-	encodeResponseAsJSON(&Hero{}, w)
+
+	encodeResponseAsJSON(hero, w)
 }
 
 // CreateHero method that creates a new hero
 func CreateHero(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	var hero Hero
 	_ = json.NewDecoder(r.Body).Decode(&hero)
-	hero.ID = strconv.Itoa(rand.Intn(10000000)) // Mock ID - not safe
-	heroes = append(heroes, &hero)
+	_, err := conn.Exec(context.Background(), "insert into heroes values($1)", hero)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to add hero: %v\n", err)
+		return
+	}
+
 	encodeResponseAsJSON(hero, w)
 }
 
@@ -54,30 +77,37 @@ func CreateHero(w http.ResponseWriter, r *http.Request) {
 func UpdateHero(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	for i, hero := range heroes {
-		if hero.ID == params["id"] {
-			heroes = append(heroes[:i], heroes[i+1:]...)
-			var hero Hero
-			_ = json.NewDecoder(r.Body).Decode(&hero)
-			hero.ID = params["id"]
-			heroes = append(heroes, &hero)
-			encodeResponseAsJSON(hero, w)
-			break
-		}
+	var hero Hero
+	_ = json.NewDecoder(r.Body).Decode(&hero)
+	_, err := conn.Exec(
+		context.Background(),
+		`update heroes set name=$1, title=$2, faction=$3, race=$4, location=$5  where id=$6`,
+		hero.Name,
+		hero.Title,
+		hero.Faction,
+		hero.Race,
+		hero.Location,
+		params["id"],
+	)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to update hero: %v\n", err)
+		return
 	}
+
+	encodeResponseAsJSON(hero, w)
 }
 
 // DeleteHero method that deletes a hero
 func DeleteHero(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	for i, hero := range heroes {
-		if hero.ID == params["id"] {
-			heroes = append(heroes[:i], heroes[i+1:]...)
-			break
-		}
+	_, err := conn.Exec(context.Background(), "delete from heroes where id=$1", params["id"])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to delete hero: %v\n", err)
+		return
 	}
-	encodeResponseAsJSON(heroes, w)
+
+	encodeResponseAsJSON(map[string]string{"success": "true"}, w)
 }
 
 func encodeResponseAsJSON(data interface{}, w io.Writer) {
