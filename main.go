@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +16,9 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	db := connectToDataBase()
+	defer db.Close(context.Background())
 
 	if err := http.ListenAndServe(":"+port, NewServer()); err != nil {
 		log.Fatalln(err)
