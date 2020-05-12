@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -20,6 +20,7 @@ type Hero struct {
 	Faction   string    `json:"faction"`
 	Race      string    `json:"race"`
 	Location  string    `json:"location"`
+	URL       string    `json:"url" db:"-"`
 	CreatedAt time.Time `json:"created" db:"created_at"`
 	UpdatedAt time.Time `json:"updated" db:"updated_at"`
 }
@@ -37,7 +38,7 @@ func GetHeroes(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	var heroes []Hero
+	heroes := []Hero{}
 	for rows.Next() {
 		var hero Hero
 		err := rows.Scan(
@@ -54,6 +55,8 @@ func GetHeroes(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(os.Stderr, "Unable to list heroes: %v\n", err)
 			return
 		}
+		hero.URL = r.Host + r.URL.Path + "/" + strconv.Itoa(hero.ID)
+		hero.Race = r.Host + "/api/races/" + hero.Race
 		heroes = append(heroes, hero)
 	}
 
@@ -88,6 +91,8 @@ func GetHero(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(os.Stderr, "Unable to retrieve hero: %v\n", err)
 		return
 	}
+	hero.URL = r.Host + r.URL.Path
+	hero.Race = r.Host + "/api/races/" + hero.Race
 
 	encodeResponseAsJSON(hero, w)
 }
@@ -147,6 +152,8 @@ func UpdateHero(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(os.Stderr, "Unable to update hero: %v\n", err)
 		return
 	}
+	hero.URL = r.Host + r.URL.Path + "/" + params["id"]
+	hero.Race = r.Host + "/api/races/" + hero.Race
 
 	encodeResponseAsJSON(hero, w)
 }
@@ -155,16 +162,15 @@ func UpdateHero(w http.ResponseWriter, r *http.Request) {
 func DeleteHero(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	_, err := db.Exec(context.Background(), "delete from heroes where id=$1", params["id"])
+	_, err := db.Exec(
+		context.Background(),
+		"delete from heroes where id=$1",
+		params["id"],
+	)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to delete hero: %v\n", err)
 		return
 	}
 
 	encodeResponseAsJSON(map[string]string{"success": "true"}, w)
-}
-
-func encodeResponseAsJSON(data interface{}, w io.Writer) {
-	enc := json.NewEncoder(w)
-	enc.Encode(data)
 }
