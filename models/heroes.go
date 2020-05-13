@@ -57,6 +57,7 @@ func GetHeroes(w http.ResponseWriter, r *http.Request) {
 		}
 		hero.URL = r.Host + r.URL.Path + "/" + strconv.Itoa(hero.ID)
 		hero.Race = r.Host + "/api/races/" + hero.Race
+		hero.Faction = r.Host + "/api/factions/" + hero.Faction
 		heroes = append(heroes, hero)
 	}
 
@@ -93,6 +94,7 @@ func GetHero(w http.ResponseWriter, r *http.Request) {
 	}
 	hero.URL = r.Host + r.URL.Path
 	hero.Race = r.Host + "/api/races/" + hero.Race
+	hero.Faction = r.Host + "/api/factions/" + hero.Faction
 
 	encodeResponseAsJSON(hero, w)
 }
@@ -123,6 +125,8 @@ func CreateHero(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(os.Stderr, "Unable to add hero: %v\n", err)
 		return
 	}
+	hero.Race = r.Host + "/api/races/" + hero.Race
+	hero.Faction = r.Host + "/api/factions/" + hero.Faction
 
 	encodeResponseAsJSON(hero, w)
 }
@@ -154,6 +158,7 @@ func UpdateHero(w http.ResponseWriter, r *http.Request) {
 	}
 	hero.URL = r.Host + r.URL.Path + "/" + params["id"]
 	hero.Race = r.Host + "/api/races/" + hero.Race
+	hero.Faction = r.Host + "/api/factions/" + hero.Faction
 
 	encodeResponseAsJSON(hero, w)
 }
