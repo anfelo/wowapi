@@ -22,3 +22,12 @@ func SetRacesRoutes(r *mux.Router) {
 	r.HandleFunc("/api/races/{id}", models.UpdateRace).Methods("PUT")
 	r.HandleFunc("/api/races/{id}", models.DeleteRace).Methods("DELETE")
 }
+
+// SetFactionsRoutes method for initializing Factions routes
+func SetFactionsRoutes(r *mux.Router) {
+	r.HandleFunc("/api/factions", models.GetFactions).Methods("GET")
+	r.HandleFunc("/api/factions/{id}", models.GetFaction).Methods("GET")
+	r.HandleFunc("/api/factions", models.CreateFaction).Methods("POST")
+	r.HandleFunc("/api/factions/{id}", models.UpdateFaction).Methods("PUT")
+	r.HandleFunc("/api/factions/{id}", models.DeleteFaction).Methods("DELETE")
+}
