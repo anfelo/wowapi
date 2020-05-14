@@ -19,6 +19,7 @@ func NewServer() *mux.Router {
 	SetHeroesRoutes(r)
 	SetRacesRoutes(r)
 	SetFactionsRoutes(r)
+	SetClassesRoutes(r)
 	return r
 }
 
