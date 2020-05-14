@@ -31,3 +31,12 @@ func SetFactionsRoutes(r *mux.Router) {
 	r.HandleFunc("/api/factions/{id}", models.UpdateFaction).Methods("PUT")
 	r.HandleFunc("/api/factions/{id}", models.DeleteFaction).Methods("DELETE")
 }
+
+// SetClassesRoutes method for initializing Classes routes
+func SetClassesRoutes(r *mux.Router) {
+	r.HandleFunc("/api/classes", models.GetClasses).Methods("GET")
+	r.HandleFunc("/api/classes/{id}", models.GetClass).Methods("GET")
+	r.HandleFunc("/api/classes", models.CreateClass).Methods("POST")
+	r.HandleFunc("/api/classes/{id}", models.UpdateClass).Methods("PUT")
+	r.HandleFunc("/api/classes/{id}", models.DeleteClass).Methods("DELETE")
+}
