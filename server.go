@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 
+	"github.com/anfelo/wowapi/middleware"
 	"github.com/anfelo/wowapi/models"
 
 	"github.com/gorilla/mux"
@@ -20,6 +19,7 @@ func NewServer() *mux.Router {
 	SetRacesRoutes(r)
 	SetFactionsRoutes(r)
 	SetClassesRoutes(r)
+	r.Use(middleware.AuthMiddleware)
 	return r
 }
 
@@ -31,12 +31,4 @@ func connectToDataBase() *pgx.Conn {
 	}
 	models.SetDatabase(db)
 	return db
-}
-
-// ErrHandler method that handles http errors
-func ErrHandler(err error) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusInternalServerError)
-		io.WriteString(w, err.Error())
-	})
 }
