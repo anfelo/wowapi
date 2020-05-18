@@ -138,7 +138,7 @@ func UpdateClass(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(os.Stderr, "Unable to update class: %v\n", err)
 		return
 	}
-	class.URL = r.Host + r.URL.Path + "/" + params["id"]
+	class.URL = r.Host + r.URL.Path
 
 	encodeResponseAsJSON(class, w)
 }

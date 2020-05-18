@@ -129,7 +129,7 @@ func UpdateFaction(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(os.Stderr, "Unable to update faction: %v\n", err)
 		return
 	}
-	faction.URL = r.Host + r.URL.Path + "/" + params["id"]
+	faction.URL = r.Host + r.URL.Path
 
 	encodeResponseAsJSON(faction, w)
 }

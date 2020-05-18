@@ -156,7 +156,7 @@ func UpdateHero(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(os.Stderr, "Unable to update hero: %v\n", err)
 		return
 	}
-	hero.URL = r.Host + r.URL.Path + "/" + params["id"]
+	hero.URL = r.Host + r.URL.Path
 	hero.Race = r.Host + "/api/races/" + hero.Race
 	hero.Faction = r.Host + "/api/factions/" + hero.Faction
 

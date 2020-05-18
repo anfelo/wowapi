@@ -134,7 +134,7 @@ func UpdateRace(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(os.Stderr, "Unable to update race: %v\n", err)
 		return
 	}
-	race.URL = r.Host + r.URL.Path + "/" + params["id"]
+	race.URL = r.Host + r.URL.Path
 
 	encodeResponseAsJSON(race, w)
 }
