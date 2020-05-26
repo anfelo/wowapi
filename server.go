@@ -19,6 +19,7 @@ func NewServer() *mux.Router {
 	SetRacesRoutes(r)
 	SetFactionsRoutes(r)
 	SetClassesRoutes(r)
+	SetDocsRoute(r)
 	r.Use(middleware.AuthMiddleware)
 	return r
 }
